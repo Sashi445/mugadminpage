@@ -79,4 +79,12 @@ class FirestoreServices{
   //   }
   // }
 
+  Future<bool> createBanner() async{
+    try{
+
+    }catch(e){
+      
+    }
+  }
+
 }

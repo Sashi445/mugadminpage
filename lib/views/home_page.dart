@@ -23,6 +23,9 @@ class _HomePageState extends State<HomePage> {
     PostBanner(),
     Container(
       child: Center(child: Text('Terms and conditions')),
+    ),
+    Container(
+      child: Center(child: Text('Rating Section')),
     )
   ];
 
@@ -82,7 +85,10 @@ class _HomePageState extends State<HomePage> {
                   label: Center(child: Text('Post a banner'))),
               NavigationRailDestination(
                   icon: Icon(Icons.text_format_outlined),
-                  label: Center(child: Text('Terms and conditions')))
+                  label: Center(child: Text('Terms and conditions'))),
+              NavigationRailDestination(
+                  icon: Icon(Icons.rate_review_outlined),
+                  label: Center(child: Text('Rate card')))
             ],
           ),
           Expanded(flex: 2, child: _widgets.elementAt(selected))
