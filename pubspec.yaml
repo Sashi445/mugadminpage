@@ -28,7 +28,11 @@ dependencies:
   firebase_auth: ^0.18.4+1
   firebase_core: ^0.5.3
   provider: ^4.3.2+3
+<<<<<<< HEAD
   flutter_web_image_picker: ^0.0.2
+=======
+  google_fonts: ^1.1.1
+>>>>>>> d84d1474795b2bc3d66cfc5d131bb7720e8d1fd3
 
 dev_dependencies:
   flutter_test:
