@@ -27,7 +27,6 @@ class _SignInPageState extends State<SignInPage> {
     final firebaseAuthServices = Provider.of<FirebaseAuthServices>(context);
 
     return Scaffold(
-      //appBar: AppBar(),
       body: Row(
         children: [
           Container(
@@ -38,9 +37,12 @@ class _SignInPageState extends State<SignInPage> {
                 Container(
                   height: MediaQuery.of(context).size.height,
                   color: Colors.yellow,
-                  child: Image.network(
-                    'https://images.theconversation.com/files/222785/original/file-20180612-112602-1n6vzvh.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=926&fit=clip',
-                    fit: BoxFit.fill,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width/2,
+                    child: Image.network(
+                      'https://images.theconversation.com/files/222785/original/file-20180612-112602-1n6vzvh.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=926&fit=clip',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 Align(

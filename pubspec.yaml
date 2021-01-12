@@ -23,16 +23,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^0.14.4
+  cloud_firestore: ^0.15.0  
   cupertino_icons: ^1.0.1
-  firebase_auth: ^0.18.4+1
-  firebase_core: ^0.5.3
-  provider: ^4.3.2+3
-<<<<<<< HEAD
-  flutter_web_image_picker: ^0.0.2
-=======
+  firebase: ^8.0.0
   google_fonts: ^1.1.1
->>>>>>> d84d1474795b2bc3d66cfc5d131bb7720e8d1fd3
+  provider: ^4.3.2+3
+  firebase_storage: ^6.0.0
+  firebase_core: ^0.6.0
+  firebase_auth: ^0.19.0+1
 
 dev_dependencies:
   flutter_test:

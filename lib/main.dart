@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mugadminpage/services/firebase_auth_services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:mugadminpage/views/landing_page.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +10,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
@@ -40,7 +40,12 @@ class MyApp extends StatelessWidget {
 class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Provider<FirebaseAuthServices>(
-        create: (context) => FirebaseAuthServices(), child: LandingPage());
+    return MultiProvider(
+      providers: [
+        Provider<FirebaseAuthServices>(create: (context) => FirebaseAuthServices()),
+        Provider<FirestoreServices>(create: (context) => FirestoreServices())
+      ],
+      child: LandingPage(),
+    );
   }
 }

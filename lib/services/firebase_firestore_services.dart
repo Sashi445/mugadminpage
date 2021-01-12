@@ -1,5 +1,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mugadminpage/classes/banner.dart';
 import 'package:mugadminpage/classes/location.dart';
 
 class FirestoreServices{
@@ -69,22 +70,64 @@ class FirestoreServices{
     }
   }
 
-  // Future getLocationsList() async{
-  //   try{
-  //     final documentSnapshot = await rootCollectionReference.doc('locations').get();
-  //     return documentSnapshot['locations'];
-  //   }catch(e){
-  //     print('An exception was thrown : $e');
-  //     return null;
-  //   }
-  // }
-
-  Future<bool> createBanner() async{
+  Future getLocationsList() async{
     try{
+      final document = await rootCollectionReference.doc('locations').get()
+      .then((value){
+        print('successfully got locations');
+      })
+      .catchError(((error){
+        print('An errpr was found!! : $error');
+      }));
+      print(document);
+      return document['locations'];
+    }catch(e){
+      print('An exception was thrown : $e');
+      return null;
+    }
+  }
+
+  Future<bool> createBanner(BannerObject banner) async{
+    try{
+      final bannersDocRef = rootCollectionReference.doc('banners');
+      final bannersCollection = bannersDocRef.collection('bannerData');
+      final res = await instance.runTransaction((transaction) async{
+        final docRef = bannersCollection.doc('${banner.bannerId}' + '|' +'${banner.vendorId}');
+        transaction.set(docRef, banner.toMap());
+      })
+      .then((value){
+        print('Successfully added banner');
+        return true;
+      })
+      .catchError((error){
+        print('An error was caught : $error');
+        return false;
+      });
+      print(res);
+      return res;
+    }catch(e){
+      print('An exception was thrown : $e');
+      return false; 
+    }
+  }
+
+  Stream getBanners(){
+    try{
+      final bannersCollectionReference = rootCollectionReference.doc('banners').collection('bannerData');
+      final docSnapshots = bannersCollectionReference.snapshots();
+      final bannerMaps = docSnapshots.map((event){
+        return event.docs;
+      }).toList();
+
+      final banners = bannerMaps.asStream().map((event) => {
+        
+      }).toList();
 
     }catch(e){
-      
+      print('an exception was thrown : $e');
+      return null;
     }
   }
 
 }
+

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:mugadminpage/views/post_banner_form.dart';
+import 'package:provider/provider.dart';
 
 class PostBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
+    final firestoreServices = Provider.of<FirestoreServices>(context, listen:false);
+
+    firestoreServices.getBanners();
+
     return Scaffold(
       body:Container(
         height: MediaQuery.of(context).size.height,
@@ -13,7 +20,9 @@ class PostBanner extends StatelessWidget {
             title: Text('Running and approved banners'),
           ),
           Expanded(
-            child: Container(color: Colors.amber),
+            child: SingleChildScrollView(
+              child: Container(),
+            )
           )
         ],),
       ),
@@ -24,7 +33,7 @@ class PostBanner extends StatelessWidget {
         ],),
         onPressed: (){
           Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => PostBannerForm()
+            builder: (context) => PostBannerForm(firestoreServices: firestoreServices,)
           ));
         },
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mugadminpage/classes/location.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
+import 'package:provider/provider.dart';
 
 class AddLocationsPage extends StatefulWidget {
   @override
@@ -8,12 +9,12 @@ class AddLocationsPage extends StatefulWidget {
 }
 
 class _AddLocationsPageState extends State<AddLocationsPage> {
-  final firestoreServices = FirestoreServices();
 
   final textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final firestoreServices = Provider.of<FirestoreServices>(context, listen: false);
     return Scaffold(
       body: Container(
           height: MediaQuery.of(context).size.height,
