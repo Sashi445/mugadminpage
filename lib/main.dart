@@ -18,7 +18,11 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          appBarTheme: AppBarTheme(
+            elevation: 0,
+          ),
+          accentColor: Color(0xffffcc),
+          primarySwatch: Colors.amber,
         ),
         home: FutureBuilder(
             future: _initialization,
@@ -42,7 +46,8 @@ class Wrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<FirebaseAuthServices>(create: (context) => FirebaseAuthServices()),
+        Provider<FirebaseAuthServices>(
+            create: (context) => FirebaseAuthServices()),
         Provider<FirestoreServices>(create: (context) => FirestoreServices())
       ],
       child: LandingPage(),

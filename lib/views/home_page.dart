@@ -11,11 +11,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
   bool extended = true;
 
   int selected = 0;
-  
+
   final _widgets = [
     AddLocationsPage(),
     Container(
@@ -32,23 +31,46 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     final firebaseAuthServices = Provider.of<FirebaseAuthServices>(context);
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: Text('Servudyam')
-      ),
-      drawer: Drawer(
-        child: Column(children: [
-          RaisedButton(
-            child: Text('Sign out'),
-            onPressed: () async {
-              await firebaseAuthServices.signOutTheSession();
-            },
+        centerTitle: false,
+        title: Text('Servudyam'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: IconButton(
+                icon: Icon(Icons.logout),
+                onPressed: () {
+                  return showDialog(
+                      context: context,
+                      builder: (contex) {
+                        return AlertDialog(
+                          shape: OutlineInputBorder(borderRadius: BorderRadius.circular(5)),
+                          title: Text('Are you sure want to exit'),
+                          actions: [
+                            MaterialButton(
+                              hoverColor: Colors.red,
+                              onPressed: () async {
+                                await firebaseAuthServices.signOutTheSession();
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Log Out'),
+                            ),
+                            MaterialButton(
+                              hoverColor: Colors.grey[400],
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Cancel'),
+                            )
+                          ],
+                        );
+                      });
+                }),
           )
-        ],),
+        ],
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height,
@@ -89,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                   label: Center(child: Text('Terms and conditions'))),
               NavigationRailDestination(
                   icon: Icon(Icons.rate_review_outlined),
-                  label: Center(child: Text('Rate card')))
+                  label: Center(child: Text('Rate card'))),
             ],
           ),
           Expanded(flex: 2, child: _widgets.elementAt(selected))

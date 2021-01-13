@@ -9,12 +9,12 @@ class AddLocationsPage extends StatefulWidget {
 }
 
 class _AddLocationsPageState extends State<AddLocationsPage> {
-
   final textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final firestoreServices = Provider.of<FirestoreServices>(context, listen: false);
+    final firestoreServices =
+        Provider.of<FirestoreServices>(context, listen: false);
     return Scaffold(
       body: Container(
           height: MediaQuery.of(context).size.height,
@@ -36,31 +36,56 @@ class _AddLocationsPageState extends State<AddLocationsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: textEditingController,
-                        decoration:
-                            InputDecoration(labelText: 'Enter a location'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 50),
+                        child: TextField(
+                          controller: textEditingController,
+                          decoration: InputDecoration(
+                              suffixIcon: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: IconButton(
+                                    icon: Icon(Icons.add_circle_rounded),
+                                    onPressed: () async{
+                                      var res = await firestoreServices.addLocation(
+                                  location: Location(
+                                      location: textEditingController.text));
+                              Future.delayed(Duration(seconds: 1)).then((value) {
+                                setState(() {
+                                  Scaffold.of(context).showSnackBar(SnackBar(
+                                    content: Text('Added Location'),
+                                  ));
+                                  textEditingController.clear();
+                                });
+                              });
+                              print(res);
+                                    }),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              hintText: 'Enter a location to add'),
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                      child: RaisedButton(
-                          child: Text('Add'),
-                          onPressed: () async {
-                            var res = await firestoreServices.addLocation(
-                                location:
-                                    Location(location: textEditingController.text));
-                            Future.delayed(Duration(seconds: 1)).then((value) {
-                              setState(() {
-                                Scaffold.of(context).showSnackBar(SnackBar(
-                                  content: Text('Added Location'),
-                                ));
-                                textEditingController.clear();
-                              });
-                            });
-                            print(res);
-                          }),
-                    )
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                    //   child: RaisedButton(
+                    //       child: Text('Add'),
+                    //       onPressed: () async {
+                    //         var res = await firestoreServices.addLocation(
+                    //             location: Location(
+                    //                 location: textEditingController.text));
+                    //         Future.delayed(Duration(seconds: 1)).then((value) {
+                    //           setState(() {
+                    //             Scaffold.of(context).showSnackBar(SnackBar(
+                    //               content: Text('Added Location'),
+                    //             ));
+                    //             textEditingController.clear();
+                    //           });
+                    //         });
+                    //         print(res);
+                    //       }),
+                    // )
                   ],
                 ),
               ),
