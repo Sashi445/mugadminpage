@@ -152,7 +152,7 @@ class _PostBannerFormState extends State<PostBannerForm> {
                               subtitle: Text(locations[index]['locationId']),
                               onTap: (){
                                 setState(() {
-                                  this._selectedLocation = locations[index]['locationId'];
+                                  this._selectedLocation = locations[index];
                                 });
                               },
                             ),),
@@ -206,7 +206,7 @@ class _PostBannerFormState extends State<PostBannerForm> {
                 icon: Icon(Icons.add_photo_alternate),
                 onPressed: () async {
                   final path = '${this.banner.bannerId}' + '|' + 
-                      '${this._selectedLocation}' +
+                      '${this._selectedLocation['locationId']}' + '|' +
                       '${this._selectedVendor}';
                   uploadImage(onSelected: (file) {
                     setState(() {
