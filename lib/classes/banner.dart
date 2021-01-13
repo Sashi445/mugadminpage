@@ -1,7 +1,9 @@
+import 'package:mugadminpage/classes/location.dart';
+
 class BannerObject{
   
   static int regNo = 0;
-  String location;
+  Map<String,dynamic>  location;
   int bannerId;
   String vendorId;
   final DateTime createTime  = DateTime.now();
@@ -15,8 +17,8 @@ class BannerObject{
     regNo++;
   }
 
-  void setLocation(String locationId){
-    this.location = locationId;
+  void setLocation(Map<String, dynamic> location){
+    this.location = location;
   }
 
   void setImageUrl(String url){
@@ -86,7 +88,8 @@ class BannerObject{
       'startTime' : dateMapper(this.startTime),
       'endTime' : dateMapper(this.endTime),
       'imageUrl' : this.imageUrl,
-      'price' : this.price
+      'price' : this.price,
+      'location' : this.location
     };
   }
 
