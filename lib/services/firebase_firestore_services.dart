@@ -110,7 +110,7 @@ class FirestoreServices {
   }
 
 
-  Future getSnapshots() async {
+  Future getBannerSnapshots() async {
     try {
       final bannersReference = instance.collection('banners');
       final documentSnapshots = await bannersReference.get();

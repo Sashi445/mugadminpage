@@ -50,7 +50,7 @@ class _PostBannerState extends State<PostBanner> {
             Expanded(
                 child: SingleChildScrollView(
               child: FutureBuilder(
-                future: firestoreServices.getSnapshots(),
+                future: firestoreServices.getBannerSnapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
                     final bannerMapsList = snapshot.data;
