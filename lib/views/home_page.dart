@@ -3,6 +3,7 @@ import 'package:mugadminpage/services/firebase_auth_services.dart';
 import 'package:mugadminpage/views/add_locations_page.dart';
 import 'package:mugadminpage/views/post_banner_form.dart';
 import 'package:mugadminpage/views/post_banner_page.dart';
+import 'package:mugadminpage/views/terms_and_conditions.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,9 +22,10 @@ class _HomePageState extends State<HomePage> {
       child: Center(child: Text('Services and forms')),
     ),
     PostBanner(),
-    Container(
-      child: Center(child: Text('Terms and conditions')),
-    ),
+    Terms_and_Conditions(),
+    // Container(
+    //   child: Center(child: Text('Terms and conditions')),
+    // ),
     Container(
       child: Center(child: Text('Rating Section')),
     )

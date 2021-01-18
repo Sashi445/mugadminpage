@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:mugadminpage/classes/banner.dart';
 import 'package:mugadminpage/classes/location.dart';
 
@@ -20,6 +21,29 @@ class FirestoreServices {
   //     throw Exception('An exception was thrown creating this root collection');
   //   }
   // }
+
+  Future getdata() async {
+    try {
+      final text = await rootCollectionReference
+          .doc('termsandconditions')
+          .get()
+          .then((value) => value);
+      return text['termsandconditions'];
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future updateText(String txtctr) async {
+    try {
+      final text = await rootCollectionReference.doc('termsandconditions').set({
+        'termsandconditions': txtctr,
+      }).then((value) => print('updated'));
+    } catch (e) {
+      print(e);
+    }
+  }
 
   Future<bool> addLocation({Location location}) async {
     try {
@@ -109,8 +133,12 @@ class FirestoreServices {
     }
   }
 
+<<<<<<< HEAD
 
   Future getBannerSnapshots() async {
+=======
+  Future getSnapshots() async {
+>>>>>>> ffa7985982b51c216f2dce1b95ea9a39456352b6
     try {
       final bannersReference = instance.collection('banners');
       final documentSnapshots = await bannersReference.get();
