@@ -166,10 +166,10 @@ class FirestoreServices {
       final result = instance.runTransaction((transaction) async{
         DocumentSnapshot rateCardSnap = await transaction.get(rateCardDocRef);
         Map<String, dynamic> rateCardMap = rateCardSnap.data();
-        rateCardMap.update(key, (value) => value);
+        rateCardMap[key] = value;
         transaction.update(rateCardDocRef, rateCardMap);
-      }).then((value){
-        print("Updated rate card at location $key to $value");
+      }).then((result){
+        print("Updated rate card at location $key to $value!!");
         return true;
       }).catchError((error){
         print("Something went wrong while updating rate card : $error");
@@ -224,8 +224,7 @@ class FirestoreServices {
         querySnapshot.docs.forEach((DocumentSnapshot document) {
           Map<String, dynamic> documentMap = document.data();
           final res = _updateStatus(documentMap);
-          print(res);
-          documentMap.update('status', (value) => res);
+          documentMap['status'] = res;
           batch.update(document.reference, documentMap);
         });
       })

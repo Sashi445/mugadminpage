@@ -3,13 +3,13 @@ import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:provider/provider.dart';
 
 // ignore: camel_case_types
-class Rate_Card extends StatefulWidget {
+class RateCard extends StatefulWidget {
   @override
-  _Rate_CardState createState() => _Rate_CardState();
+  _RateCardState createState() => _RateCardState();
 }
 
 // ignore: camel_case_types
-class _Rate_CardState extends State<Rate_Card> {
+class _RateCardState extends State<RateCard> {
   String updated_value = '';
   Map<String, dynamic> ratecard;
 
@@ -17,10 +17,6 @@ class _Rate_CardState extends State<Rate_Card> {
   Widget build(BuildContext context) {
     final _firestoreServices =
         Provider.of<FirestoreServices>(context, listen: false);
-
-    // Future<Widget> pricetile(String txt, double val) {
-    //   return 
-    // }
 
     return Container(
       child: Column(
@@ -50,38 +46,40 @@ class _Rate_CardState extends State<Rate_Card> {
                       ratecard = docsnapshot.data();
                       return Column(
                           children: ratecard.keys.map((e) {
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
+                        return Card(
                           child: ListTile(
-                            // tileColor: Colors.white,
                             title: Text(e),
                             trailing: Text(ratecard[e].toString()),
                             onTap: () {
                               showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: Text('Update $e the value'),
-                content: TextFormField(
-                  initialValue: ratecard[e].toString(),
-                  onChanged: (va) {
-                    updated_value = va;
-                  },
-                ),
-                actions: [
-                  FlatButton(
-                      onPressed: () async {
-                        await _firestoreServices
-                            .updateRateCard(e, double.parse(updated_value));
-                        Navigator.pop(context);
-                      },
-                      child: Text('update')),
-                  FlatButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text('cancel'))
-                ],
-              ));
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                        title: Text('Update $e the value'),
+                                        content: TextFormField(
+                                          initialValue: ratecard[e].toString(),
+                                          onChanged: (val) {
+                                            updated_value = val;
+                                          },
+                                        ),
+                                        actions: [
+                                          FlatButton(
+                                              onPressed: () async {
+                                                print(double.parse(updated_value));
+                                                await _firestoreServices
+                                                    .updateRateCard(
+                                                        e,
+                                                        double.parse(
+                                                            updated_value));
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('update')),
+                                          FlatButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('cancel'))
+                                        ],
+                                      ));
                             },
                           ),
                         );

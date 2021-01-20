@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
     ),
     PostBanner(),
     Terms_and_Conditions(),
-    Rate_Card(),
+    RateCard(),
   ];
 
   @override
