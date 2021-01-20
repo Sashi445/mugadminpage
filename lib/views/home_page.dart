@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mugadminpage/services/firebase_auth_services.dart';
 import 'package:mugadminpage/views/add_locations_page.dart';
-import 'package:mugadminpage/views/post_banner_form.dart';
+// import 'package:mugadminpage/views/post_banner_form.dart';
 import 'package:mugadminpage/views/post_banner_page.dart';
+import 'package:mugadminpage/views/rate_cards.dart';
 import 'package:mugadminpage/views/terms_and_conditions.dart';
 import 'package:provider/provider.dart';
 
@@ -23,12 +24,7 @@ class _HomePageState extends State<HomePage> {
     ),
     PostBanner(),
     Terms_and_Conditions(),
-    // Container(
-    //   child: Center(child: Text('Terms and conditions')),
-    // ),
-    Container(
-      child: Center(child: Text('Rating Section')),
-    )
+    Rate_Card(),
   ];
 
   @override
