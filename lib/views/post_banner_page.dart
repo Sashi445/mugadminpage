@@ -58,14 +58,10 @@ class _PostBannerState extends State<PostBanner> {
           children: [
             ButtonBar(
               children: [
-                FlatButton(onPressed: () async {
+                IconButton(onPressed: () async {
                   await firestoreServices.runningStatusCheckOnBanners();
-                }, child: Text('Status Check')),
-                FlatButton(
-                    child: Text('Refresh'),
-                    onPressed: () {
-                      setState(() {});
-                    }),
+                  setState(() {});
+                }, icon:Icon(Icons.refresh) ),
                 IconButton(
                     icon: Icon(Icons.add),
                     onPressed: () {

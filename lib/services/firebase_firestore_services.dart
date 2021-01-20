@@ -35,6 +35,20 @@ class FirestoreServices {
     }
   }
 
+  Future getBannerPriceByLocaiton(String location) async{
+    try{
+      final docRef = rootCollectionReference.doc('ratecard');
+      final val = await instance.runTransaction((transaction) async{
+        DocumentSnapshot docSnapshot = await transaction.get(docRef);
+        return docSnapshot.data()[location];
+      }).then((value) => value);
+      print(val);
+      return val;
+    }catch(e){
+      print("An exception was thrown : $e");
+    }
+  }
+
   Future updateText(String txtctr) async {
     try {
       await rootCollectionReference.doc('termsandconditions').set({
@@ -203,10 +217,14 @@ class FirestoreServices {
   String _updateStatus(Map<String, dynamic> bannerMap){
     final startDate = getDateFromMap(bannerMap['startTime']);
     final endDate = getDateFromMap(bannerMap['endTime']);
-    final duration1 = DateTime.now().difference(startDate);
-    final duration2 = DateTime.now().difference(endDate);
+    final presentDate = DateTime.now();
+    final duration1 = presentDate.difference(startDate);
+    final duration2 = presentDate.difference(endDate);
     if(duration1.isNegative){
-      return "Approved"; 
+      if(startDate.day == presentDate.day && startDate.month == presentDate.month && startDate.year == presentDate.year)
+         return "Approved";
+      else
+         return "Active";
     }else if(!duration1.isNegative && duration2.isNegative){
       return "Active";
     }else if(!duration1.isNegative && !duration2.isNegative){

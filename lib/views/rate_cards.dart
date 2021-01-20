@@ -10,7 +10,7 @@ class RateCard extends StatefulWidget {
 
 // ignore: camel_case_types
 class _RateCardState extends State<RateCard> {
-  String updated_value = '';
+  String updatedValue = '';
   Map<String, dynamic> ratecard;
 
   @override
@@ -58,18 +58,18 @@ class _RateCardState extends State<RateCard> {
                                         content: TextFormField(
                                           initialValue: ratecard[e].toString(),
                                           onChanged: (val) {
-                                            updated_value = val;
+                                            updatedValue = val;
                                           },
                                         ),
                                         actions: [
                                           FlatButton(
                                               onPressed: () async {
-                                                print(double.parse(updated_value));
+                                                print(double.parse(updatedValue));
                                                 await _firestoreServices
                                                     .updateRateCard(
                                                         e,
                                                         double.parse(
-                                                            updated_value));
+                                                            updatedValue));
                                                 Navigator.pop(context);
                                               },
                                               child: Text('update')),

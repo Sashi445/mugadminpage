@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:mugadminpage/classes/banner.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
 
@@ -44,7 +43,7 @@ class BannerStream {
   List getBannersByLocation(String location){
     final bannersByLocation = [];
     for(var banner in bannerData){
-      if(banner['location']['location'] == location){
+      if(banner['location']['location'] == location ){
         bannersByLocation.add(banner);
       }
     }
@@ -64,15 +63,19 @@ class BannerStream {
     }
     if(changed == false){
       bannerObject.setStartDate(DateTime.now());
+      print(DateTime.now());
     }else{
-      bannerObject.setStartDate(minDate);
+      print(minDate);
+      bannerObject.setStartDate(
+        DateTime.utc(minDate.year, minDate.month, minDate.day + 1, minDate.hour, minDate.minute, minDate.second)
+      );
     }
   }
 
   void getToKnowBanners(String location) {
     var bannerMaps = getBannersByLocation(location);
     if(bannerMaps.length < 5){
-      setStartTime(DateTime.now());
+      bannerObject.setStartDate(DateTime.now());
     }else{
       setInitialStartTime(bannerMaps);
     }
@@ -90,17 +93,6 @@ class BannerStream {
     final locationDocRef = await firestoreServices.rootCollectionReference.doc('locations').get();
     return locationDocRef.data()['locations'];
   }
-
-  void setStartTime(DateTime startDate) {
-    bannerObject.setStartDate(startDate);
-    addDataToStream();
-  }
-
-  // void setEndTime(DateTime endDate) {
-  //   bannerObject.setEndDate(endDate);
-  //   addDataToStream();
-  // }
-
   void setVendorId(String vendorId){
     bannerObject.setvendorId(vendorId);
     _bannerCheckList['vendorId'] = true;
@@ -112,18 +104,18 @@ class BannerStream {
     addDataToStream();
   }
 
-  void setEndDate(DateTime endTime){
+  void setEndDate(DateTime endTime) async {
     bannerObject.setEndDate(endTime);
     _bannerCheckList['endTime'] = true;
-    setBannerPrice();
+    await setBannerPrice(bannerObject.location['location']);
     addDataToStream();
   }
 
-  void setBannerPrice(){
+  Future<void> setBannerPrice(String location) async {
     var duration = bannerObject.endTime.difference(bannerObject.startTime);
     int days = duration.inDays;
-    print("Days : $days, price: ${days*100.0}");
-    bannerObject.setPrice(days*100.0);
+    var pricePerDay = await firestoreServices.getBannerPriceByLocaiton(location);
+    bannerObject.setPrice(days*pricePerDay);
     addDataToStream();
   }
 
