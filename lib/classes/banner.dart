@@ -10,24 +10,12 @@ class BannerObject{
   DateTime endTime;
   String imageUrl;
   double price;
-  String status;
+  String status = "Approved";
   final bool adminAuthorised = true;
   
   BannerObject(){
     this.bannerId = count;
     count++;
-  }
-
-  void initiateStatus(){
-    var duration1 = this.startTime.difference(DateTime.now());
-    var duration2 = this.endTime.difference(DateTime.now());
-    if(duration1.isNegative){
-      this.status = "Approved";
-    }else if(duration2.compareTo(duration1) >= 0){
-      this.status = "Active";
-    }else if(duration2.compareTo(duration1) == -1){
-      this.status = "Expired";
-    }
   }
 
   //ignore using most of the time
@@ -120,7 +108,8 @@ class BannerObject{
       'imageUrl' : this.imageUrl,
       'price' : this.price,
       'location' : this.location,
-      'adminAuthorized' : this.adminAuthorised
+      'adminAuthorized' : this.adminAuthorised,
+      'status' : this.status
     };
   }
 

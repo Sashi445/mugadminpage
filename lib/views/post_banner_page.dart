@@ -10,6 +10,12 @@ class PostBanner extends StatefulWidget {
 }
 
 class _PostBannerState extends State<PostBanner> {
+
+  @override
+  void initState(){
+    super.initState();
+  }
+
   String dateFormatter(int day, int month, int year) {
     return day.toString() + '/' + month.toString() + '/' + year.toString();
   }
@@ -26,6 +32,7 @@ class _PostBannerState extends State<PostBanner> {
                   e['startTime']['month'], e['startTime']['year']))),
               DataCell(Text(dateFormatter(e['endTime']['day'],
                   e['endTime']['month'], e['endTime']['year']))),
+              DataCell(Text(e['status'])),
               DataCell(Container(
                   height: 100,
                   width: 150,
@@ -51,6 +58,9 @@ class _PostBannerState extends State<PostBanner> {
           children: [
             ButtonBar(
               children: [
+                FlatButton(onPressed: () async {
+                  await firestoreServices.runningStatusCheckOnBanners();
+                }, child: Text('Status Check')),
                 FlatButton(
                     child: Text('Refresh'),
                     onPressed: () {
@@ -83,6 +93,7 @@ class _PostBannerState extends State<PostBanner> {
                       DataColumn(label: Text('Created On')),
                       DataColumn(label: Text('Start Date')),
                       DataColumn(label: Text('End Date')),
+                      DataColumn(label: Text('Status')),
                       DataColumn(label: Text('Image Data')),
                       DataColumn(label: Text('Price'))
                     ], rows: getDataRows(bannerMapsList));

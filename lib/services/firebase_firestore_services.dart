@@ -197,13 +197,45 @@ class FirestoreServices {
     }
   }
 
+  DateTime getDateFromMap(dynamic dateMap) => DateTime.utc(dateMap['year'], dateMap['month'], dateMap['day'], dateMap['hour'], dateMap['minute'], dateMap['second']);
+
+  //takes in the banner document and returns the status of the banner
+  String _updateStatus(Map<String, dynamic> bannerMap){
+    final startDate = getDateFromMap(bannerMap['startTime']);
+    final endDate = getDateFromMap(bannerMap['endTime']);
+    final duration1 = DateTime.now().difference(startDate);
+    final duration2 = DateTime.now().difference(endDate);
+    if(duration1.isNegative){
+      return "Approved"; 
+    }else if(!duration1.isNegative && duration2.isNegative){
+      return "Active";
+    }else if(!duration1.isNegative && !duration2.isNegative){
+      return "Expired";
+    }
+    return "Wrong input!!";
+  }
+
   Future runningStatusCheckOnBanners() async{
     try{
       final bannerCollectionReference = rootCollectionReference.doc('banners').collection('bannerData');
-      
-
+      //using batch writes here because need to update every banner status
+      WriteBatch batch = instance.batch();
+      bannerCollectionReference.get().then((QuerySnapshot querySnapshot){
+        querySnapshot.docs.forEach((DocumentSnapshot document) {
+          Map<String, dynamic> documentMap = document.data();
+          final res = _updateStatus(documentMap);
+          print(res);
+          documentMap.update('status', (value) => res);
+          batch.update(document.reference, documentMap);
+        });
+      })
+      .then((value){
+        batch.commit();
+      });
+      print("Running status check on banners using batches!!");
+      // return batch.commit();
     }catch(e){
-
+      print("An exception was thrown : $e");
     }
   }
 

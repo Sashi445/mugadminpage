@@ -5,7 +5,7 @@ import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:mugadminpage/views/landing_page.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
 }
 
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
               return Center(
                 child: CircularProgressIndicator(),
               );
-            }));
+      }));
   }
 }
 
