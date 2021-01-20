@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:firebase/firebase.dart' as fb;
+import 'package:mugadminpage/blocs/bannerstream.dart';
 import 'dart:html';
 
 import 'package:mugadminpage/classes/banner.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
 
 class PostBannerForm extends StatefulWidget {
-
   final FirestoreServices firestoreServices;
 
   const PostBannerForm({Key key, this.firestoreServices}) : super(key: key);
@@ -17,23 +17,13 @@ class PostBannerForm extends StatefulWidget {
 }
 
 class _PostBannerFormState extends State<PostBannerForm> {
+  final bannerStream = BannerStream();
 
-  final banner = BannerObject();
-
-  var buttonData = {
-    'color' : Colors.red,
-    'iconData' : Icons.close
-  };
+  bool buttonState = false;
 
   var imageUrl;
 
-  var _selectedVendor;
-
-  var _selectedStartDate = DateTime.now();
-
   var _selectedEndDate = DateTime.now();
-
-  var _selectedLocation;
 
   final vendorIds = [];
 
@@ -53,9 +43,11 @@ class _PostBannerFormState extends State<PostBannerForm> {
 
   @override
   void initState() {
+    bannerStream.setBannerDataFromDatabase();
     for (int i = 0; i < 10; i++) {
       vendorIds.add(createRandomVendorId());
     }
+    bannerStream.addDataToStream();
     super.initState();
   }
 
@@ -66,31 +58,14 @@ class _PostBannerFormState extends State<PostBannerForm> {
     return String.fromCharCodes(charCodes);
   }
 
-  void _selectStartDate(BuildContext context) async {
-    final picked = await showDatePicker(
-        context: context,
-        initialDate: _selectedStartDate,
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2030));
-    if (picked != null && picked != _selectedStartDate) {
-      setState(() {
-        _selectedStartDate = picked;
-        banner.setStartDate(picked);
-      });
-    }
-  }
-
   void _selectEndDate(BuildContext context) async {
     final _picked = await showDatePicker(
         context: context,
-        initialDate: _selectedStartDate,
-        firstDate: _selectedStartDate,
-        lastDate: DateTime(2030));
+        initialDate: bannerStream.bannerObject.startTime,
+        firstDate: bannerStream.bannerObject.startTime,
+        lastDate: DateTime(2070));
     if (_picked != null && _picked != _selectedEndDate) {
-      setState(() {
-        _selectedEndDate = _picked;
-        banner.setEndDate(_picked);
-      });
+      bannerStream.setEndDate(_picked);
     }
   }
 
@@ -102,138 +77,172 @@ class _PostBannerFormState extends State<PostBannerForm> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            ListTile(
-              title: Text('Create Banner'),
-            ),
-            Card(
-              child: ExpansionTile(title: Text('Choose Vendor'), children: [
-                Container(
-                  height: MediaQuery.of(context).size.height / 5,
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.all(3.0),
-                  color: Colors.grey[200],
-                  child: ListView.builder(
-                      itemCount: vendorIds.length,
-                      itemBuilder: (context, index) => Card(
-                            child: ListTile(
-                              title: Text(vendorIds.elementAt(index)),
-                              leading: Text((index + 1).toString()),
-                              onTap: () {
+        child: StreamBuilder(
+            stream: bannerStream.bannerStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.connectionState == ConnectionState.active) {
+                BannerObject bannerObject = snapshot.data;
+                return ListView(
+                  children: [
+                    ListTile(
+                      title: Text('Create Banner'),
+                    ),
+                    Card(
+                      child: ListTile(
+                        title: Text('Request Number'),
+                        trailing: Text(bannerObject.bannerId.toString()),
+                      ),
+                    ),
+                    Card(
+                      child: ExpansionTile(
+                          title: Text(bannerObject.vendorId == ''
+                              ? "Choose a vendor"
+                              : bannerObject.vendorId),
+                          children: [
+                            Container(
+                              height: MediaQuery.of(context).size.height / 5,
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.all(3.0),
+                              color: Colors.grey[200],
+                              child: ListView.builder(
+                                  itemCount: vendorIds.length,
+                                  itemBuilder: (context, index) => Card(
+                                        child: ListTile(
+                                          title:
+                                              Text(vendorIds.elementAt(index)),
+                                          leading: Text((index + 1).toString()),
+                                          onTap: () {
+                                            bannerStream
+                                                .setVendorId(vendorIds[index]);
+                                          },
+                                        ),
+                                      )),
+                            )
+                          ]),
+                    ),
+                    Card(
+                      child: ExpansionTile(
+                        title: Text(bannerObject.location['location'] == ''
+                            ? "Choose a location"
+                            : bannerObject.location['location']),
+                        children: [
+                          Container(
+                              height: MediaQuery.of(context).size.height / 5,
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.all(3.0),
+                              color: Colors.grey[200],
+                              child: FutureBuilder(
+                                future: bannerStream.getLocations(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final locations = snapshot.data;
+                                    return ListView.builder(
+                                      itemCount: locations.length,
+                                      itemBuilder: (context, index) => Card(
+                                        child: ListTile(
+                                          title: Text(
+                                              locations[index]['location']),
+                                          subtitle: Text(
+                                              locations[index]['locationId']),
+                                          onTap: () {
+                                            bannerStream
+                                                .setLocation(locations[index]);
+                                            bannerStream.getToKnowBanners(
+                                                locations[index]['location']);
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                      child: Text(snapshot.error),
+                                    );
+                                  } else {
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                              ))
+                        ],
+                      ),
+                    ),
+                    Card(
+                        child: ListTile(
+                      title: Text(
+                          '${bannerObject.startTime.toLocal()}'.split(' ')[0] ??
+                              "Not selected"),
+                      subtitle: Text('Start Date Goes Here(Auto-generated)'),
+                    )),
+                    Card(
+                        child: ListTile(
+                      title: Text(
+                          '${bannerObject.endTime.toLocal()}'.split(' ')[0]),
+                      subtitle: Text('Choose End date'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () => _selectEndDate(context),
+                      ),
+                    )),
+                    Card(
+                      child: ListTile(
+                        title: Text("Price"),
+                        subtitle: Text('Auto-generated'),
+                        trailing:
+                            Text(bannerObject.price.ceilToDouble().toString()),
+                      ),
+                    ),
+                    Card(
+                        child: ListTile(
+                      title: Text('Pick an image'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.add_photo_alternate),
+                        onPressed: () async {
+                          final path = '${bannerObject.bannerId}' +
+                              '|' +
+                              '${bannerObject.location['locationId']}' +
+                              '|' +
+                              '${bannerObject.vendorId}';
+                          uploadImage(onSelected: (file) {
+                            setState(() {
+                              this.imageUrl = fb
+                                  .storage()
+                                  .refFromURL(
+                                      'gs://servudyam-9b91b.appspot.com/')
+                                  .child(path)
+                                  .put(file)
+                                  .future
+                                  .then((_) {
+                                print('path : $path');
+                                print('Added to Storage!!');
+                              })
+                              .then((value){
+                                bannerStream.setImageUrl(path);
                                 setState(() {
-                                  this._selectedVendor = vendorIds[index];
+                                  buttonState = bannerStream.checkList();
                                 });
-                              },
-                            ),
-                          )),
-                )
-              ]),
-            ),
-            Card(
-              child: ExpansionTile(
-                title: Text('Choose Location'),
-                children: [
-                    Container(
-                    height: MediaQuery.of(context).size.height / 5,
-                    width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.all(3.0),
-                    color: Colors.grey[200],
-                    child: FutureBuilder(
-                      future: widget.firestoreServices.rootCollectionReference.doc('locations').get(),
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          final locationsData = snapshot.data;
-                          final locations = locationsData['locations'];
-                          return ListView.builder(
-                            itemCount: locations.length,
-                            itemBuilder: (context, index) => Card(child: ListTile(
-                              title: Text(locations[index]['location']),
-                              subtitle: Text(locations[index]['locationId']),
-                              onTap: (){
-                                setState(() {
-                                  this._selectedLocation = locations[index];
-                                });
-                              },
-                            ),),
-                          );
-                        }
-                        else if(snapshot.hasError){
-                          return Center(child: Text(snapshot.error),);
-                        }
-                        else{
-                          return Center(child: CircularProgressIndicator(),);
-                        }
-                      },
-                    )
-                  )
-                ],
-              ),
-            ),
-            // Expanded(
-            //   child: GridView(
-            //     // physics: NeverScrollableScrollPhysics(),
-            //     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            //         childAspectRatio: 11,
-            //         crossAxisCount: 2),
-            //     children: [
-
-            //     ],
-            //   ),
-            // ),
-            Card(
-                child: ListTile(
-              title: Text('${_selectedStartDate.toLocal()}'.split(' ')[0]),
-              subtitle: Text('Choose start date'),
-              trailing: IconButton(
-                icon: Icon(Icons.calendar_today),
-                onPressed: () => _selectStartDate(context),
-              ),
-            )),
-            Card(
-                child: ListTile(
-              title: Text('${_selectedEndDate.toLocal()}'.split(' ')[0]),
-              subtitle: Text('Choose End date'),
-              trailing: IconButton(
-                icon: Icon(Icons.calendar_today),
-                onPressed: () => _selectEndDate(context),
-              ),
-            )),
-            Card(
-                child: ListTile(
-              title: Text('Pick an image'),
-              trailing: IconButton(
-                icon: Icon(Icons.add_photo_alternate),
-                onPressed: () async {
-                  final path = '${this.banner.bannerId}' + '|' + 
-                      '${this._selectedLocation['locationId']}' + '|' +
-                      '${this._selectedVendor}';
-                  uploadImage(onSelected: (file) {
-                    setState(() {
-                      this.imageUrl = fb
-                          .storage()
-                          .refFromURL('gs://servudyam-9b91b.appspot.com/')
-                          .child(path)
-                          .put(file)
-                          .future
-                          .then((_) {
-                            print('path : $path');
-                        print('Added to Storage!!');
-                        setState(() {
-                          this.imageUrl = path;
-                          this.buttonData['color'] = Colors.green;
-                          this.buttonData['iconData'] = Icons.check;
-                        });
-                      }).catchError((error) {
-                        print('An error was caught : $error');
-                      });
-                    });
-                  });
-                },
-              ),
-            ))
-          ],
-        ),
+                                print("ButtonState: $buttonState");
+                              })
+                              .catchError((error) {
+                                print(
+                                    'An error was caught with uploading to storage : $error');
+                              });
+                            });
+                          });
+                        },
+                      ),
+                    ))
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(snapshot.error),
+                );
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            }),
       ),
       floatingActionButton: FloatingActionButton.extended(
           label: Row(
@@ -241,18 +250,12 @@ class _PostBannerFormState extends State<PostBannerForm> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Text('save'),
-              Icon(buttonData['iconData'])
-          ],),
-          backgroundColor: buttonData['color'],
+              Icon(buttonState ? Icons.check : Icons.close)
+            ],
+          ),
+          backgroundColor:buttonState ? Colors.green : Colors.red,
           onPressed: () async {
-            banner.setImageUrl(imageUrl.toString());
-            banner.setLocation(_selectedLocation);
-            banner.setvendorId(_selectedVendor);
-            await widget.firestoreServices
-                .createBanner(banner)
-                .then((value) {
-              print('Added Banner successfully!!');
-            });
+            bannerStream.addBannerToDatabase();
             Navigator.of(context).pop();
           }),
     );

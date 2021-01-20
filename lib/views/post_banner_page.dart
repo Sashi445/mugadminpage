@@ -10,8 +10,7 @@ class PostBanner extends StatefulWidget {
 }
 
 class _PostBannerState extends State<PostBanner> {
-
-  String dateFormatter(int day, int month, int year){
+  String dateFormatter(int day, int month, int year) {
     return day.toString() + '/' + month.toString() + '/' + year.toString();
   }
 
@@ -19,15 +18,21 @@ class _PostBannerState extends State<PostBanner> {
     return data
         .map((e) => DataRow(cells: [
               DataCell(Text(e['bannerId'].toString())),
-              DataCell(Text(e['vendorId'])),
-              DataCell(Text(dateFormatter(e['startTime']['day'], e['startTime']['month'], e['startTime']['year']))),
-              DataCell(Text(dateFormatter(e['endTime']['day'], e['startTime']['month'], e['startTime']['year']))),
               DataCell(Text('${e['location']['location']}')),
+              DataCell(Text(e['vendorId'])),
+              DataCell(Text(dateFormatter(e['createTime']['day'],
+                  e['createTime']['month'], e['createTime']['year']))),
+              DataCell(Text(dateFormatter(e['startTime']['day'],
+                  e['startTime']['month'], e['startTime']['year']))),
+              DataCell(Text(dateFormatter(e['endTime']['day'],
+                  e['endTime']['month'], e['endTime']['year']))),
               DataCell(Container(
-                height: 100,
-                width: 150,
-                child: PhotoWidget(imageUrl: e['imageUrl'],)
-              )),
+                  height: 100,
+                  width: 150,
+                  child: PhotoWidget(
+                    imageUrl: e['imageUrl'],
+                  ))),
+              DataCell(Text(e['price'].toString()))
             ]))
         .toList();
   }
@@ -44,6 +49,23 @@ class _PostBannerState extends State<PostBanner> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            ButtonBar(
+              children: [
+                FlatButton(
+                    child: Text('Refresh'),
+                    onPressed: () {
+                      setState(() {});
+                    }),
+                IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => PostBannerForm(
+                                firestoreServices: firestoreServices,
+                              )));
+                    }),
+              ],
+            ),
             ListTile(
               title: Text('Running and approved banners'),
             ),
@@ -54,17 +76,16 @@ class _PostBannerState extends State<PostBanner> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
                     final bannerMapsList = snapshot.data;
-                    return DataTable(
-                      columns: [
-                        DataColumn(label: Text('Banner ID')),
-                        DataColumn(label: Text('Vendor ID')),
-                        DataColumn(label: Text('Start Date')),
-                        DataColumn(label: Text('End Date')),
-                        DataColumn(label: Text('Location')),
-                        DataColumn(label: Text('Image Data'))
-                      ],
-                      rows: getDataRows(bannerMapsList)
-                    );
+                    return DataTable(columns: [
+                      DataColumn(label: Text('RequestID')),
+                      DataColumn(label: Text('Location')),
+                      DataColumn(label: Text('Vendor ID')),
+                      DataColumn(label: Text('Created On')),
+                      DataColumn(label: Text('Start Date')),
+                      DataColumn(label: Text('End Date')),
+                      DataColumn(label: Text('Image Data')),
+                      DataColumn(label: Text('Price'))
+                    ], rows: getDataRows(bannerMapsList));
                     // return Container();
                   } else if (snapshot.hasError) {
                     return Center(child: Text(snapshot.error));
@@ -77,65 +98,51 @@ class _PostBannerState extends State<PostBanner> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Row(
-          children: [Icon(Icons.add), Text('Create')],
-        ),
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => PostBannerForm(
-                    firestoreServices: firestoreServices,
-                  )));
-        },
-      ),
     );
   }
 }
 
-
 class PhotoWidget extends StatelessWidget {
-  
   final String imageUrl;
 
   PhotoWidget({this.imageUrl});
 
   Future<Uri> downloadUrl() {
-  return fb
-      .storage()
-      .refFromURL('gs://servudyam-9b91b.appspot.com')
-      .child(imageUrl)
-      .getDownloadURL();
+    return fb
+        .storage()
+        .refFromURL('gs://servudyam-9b91b.appspot.com')
+        .child(imageUrl)
+        .getDownloadURL();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: downloadUrl().asStream() ,
-      builder: (BuildContext context, AsyncSnapshot snapshot){
-        if(snapshot.connectionState ==  ConnectionState.waiting){
+      stream: downloadUrl().asStream(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
-        }else{
+        } else {
           return GestureDetector(
-            onTap: (){
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  content: Container(
-                    height: MediaQuery.of(context).size.height/2,
-                    width: MediaQuery.of(context).size.width/2,
-                    child: Image.network(snapshot.data.toString())),
-                  actions: [
-                    FlatButton(
-                      child: Text('Close'),
-                      onPressed: (){
-                        Navigator.of(context).pop();
-                      },
-                    )
-                  ],
-                )
-              );
-            },
-            child: Image.network(snapshot.data.toString(), fit: BoxFit.fill));
+              onTap: () {
+                showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                          content: Container(
+                              height: MediaQuery.of(context).size.height / 2,
+                              width: MediaQuery.of(context).size.width / 2,
+                              child: Image.network(snapshot.data.toString())),
+                          actions: [
+                            FlatButton(
+                              child: Text('Close'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          ],
+                        ));
+              },
+              child: Image.network(snapshot.data.toString(), fit: BoxFit.fill));
         }
       },
     );

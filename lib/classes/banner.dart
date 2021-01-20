@@ -1,8 +1,7 @@
-import 'package:mugadminpage/classes/location.dart';
 
 class BannerObject{
   
-  static int regNo = 0;
+  static int count = 0;
   Map<String,dynamic>  location;
   int bannerId;
   String vendorId;
@@ -11,14 +10,45 @@ class BannerObject{
   DateTime endTime;
   String imageUrl;
   double price;
+  String status;
+  final bool adminAuthorised = true;
   
   BannerObject(){
-    this.bannerId = regNo;
-    regNo++;
+    this.bannerId = count;
+    count++;
+  }
+
+  void initiateStatus(){
+    var duration1 = this.startTime.difference(DateTime.now());
+    var duration2 = this.endTime.difference(DateTime.now());
+    if(duration1.isNegative){
+      this.status = "Approved";
+    }else if(duration2.compareTo(duration1) >= 0){
+      this.status = "Active";
+    }else if(duration2.compareTo(duration1) == -1){
+      this.status = "Expired";
+    }
+  }
+
+  //ignore using most of the time
+  void initiateSomething(){
+    this.location = {
+      'location' : '',
+      'locationId' : ''
+    };
+    vendorId = '';
+    imageUrl = '';
+    price = 0.0;
+    startTime = DateTime.now();
+    endTime = DateTime.now();
   }
 
   void setLocation(Map<String, dynamic> location){
     this.location = location;
+  }
+
+  void setPrice(double price){
+    this.price = price;
   }
 
   void setImageUrl(String url){
@@ -89,7 +119,8 @@ class BannerObject{
       'endTime' : dateMapper(this.endTime),
       'imageUrl' : this.imageUrl,
       'price' : this.price,
-      'location' : this.location
+      'location' : this.location,
+      'adminAuthorized' : this.adminAuthorised
     };
   }
 

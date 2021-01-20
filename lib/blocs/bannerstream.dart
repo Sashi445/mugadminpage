@@ -1,14 +1,21 @@
 import 'dart:async';
-
+import 'package:flutter/material.dart';
 import 'package:mugadminpage/classes/banner.dart';
-import 'package:mugadminpage/classes/location.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
 
-class BannerStream{
-
+class BannerStream {
   var bannerData;
 
   var bannerObject = BannerObject();
+
+  final _bannerCheckList = {
+    'location' : false,
+    'startTime' : false,
+    'imageUrl' : false,
+    'vendorId' : false,
+    'endTime' : false,
+    'uploadEvent' : false
+  };
 
   final firestoreServices = FirestoreServices();
 
@@ -16,58 +23,144 @@ class BannerStream{
 
   Stream<BannerObject> get bannerStream => _bannerStreamController.stream;
 
-  BannerStream(){
-    addDataToStream();
+  BannerStream(){ 
+    bannerObject.initiateSomething(); 
+    initiateDataItems();
   }
 
-  DateTime getDateTimeFromDateMap(Map<String, dynamic> dateTime) => DateTime.utc(dateTime['year'], dateTime['month'], dateTime['day'], dateTime['hour'], dateTime['minute'], dateTime['second']);
+  DateTime getDateTimeFromDateMap(Map<String, dynamic> dateTime) =>
+      DateTime.utc(dateTime['year'], dateTime['month'], dateTime['day'],
+          dateTime['hour'], dateTime['minute'], dateTime['second']);
 
-// int compareTo(Duration other)
-// Compares this Duration to other, returning zero if the values are equal.
+//returns 0 if a == b
+//returns 1 if a > b
+//returns -1 if a < b
 
-// Returns a negative integer if this Duration is shorter than other, or a positive integer if it is longer.
+  int compareTwoDurations(Duration a) => a.compareTo(Duration());
 
-// A negative Duration is always considered shorter than a positive one.
+  int compareTwoDates(DateTime a, DateTime b) =>
+      compareTwoDurations(a.difference(b));
 
-// It is always the case that duration1.compareTo(duration2) < 0 iff (someDate + duration1).compareTo(someDate + duration2) < 0.
-
-  void setInitialStartTime(){
-    var currDate = DateTime.now();
-    var currDateDuration = currDate.
+  List getBannersByLocation(String location){
+    final bannersByLocation = [];
     for(var banner in bannerData){
-      if()
-    } 
-  }
-
-  void getToKnowBanners(){
-
-  }
-
-  void setLocation(Location location){
-    var bannerCount = 0;
-    for(var banner in bannerData){
-      if(location.location == banner['location']){
-        bannerCount = bannerCount + 1;
+      if(banner['location']['location'] == location){
+        bannersByLocation.add(banner);
       }
+    }
+    return bannersByLocation;
+  }
+
+  void setInitialStartTime(List bannerMaps) {
+    var minDate = DateTime.now();
+    bool changed = false;
+    minDate = DateTime.utc(minDate.year+1, minDate.month, minDate.day, minDate.hour, minDate.minute, minDate.second);
+    for (var banner in bannerMaps) {
+      var endDate = getDateTimeFromDateMap(banner['endTime']);
+      if (compareTwoDates(endDate, minDate) == -1) {
+        minDate = endDate;
+        changed = true;
+      }
+    }
+    if(changed == false){
+      bannerObject.setStartDate(DateTime.now());
+    }else{
+      bannerObject.setStartDate(minDate);
     }
   }
 
-  void setBannerDataFromDatabase() async{
-    bannerData = await firestoreServices.getBannerSnapshots();
+  void getToKnowBanners(String location) {
+    var bannerMaps = getBannersByLocation(location);
+    if(bannerMaps.length < 5){
+      setStartTime(DateTime.now());
+    }else{
+      setInitialStartTime(bannerMaps);
+    }
+    _bannerCheckList['location'] = true;
+    _bannerCheckList['startTime'] = true;
+    addDataToStream();
   }
 
-  void setStartTime(DateTime startDate){
+  Future<void> setBannerDataFromDatabase() async {
+    bannerData = await firestoreServices.getBannerSnapshots();
+    addDataToStream();
+  }
+
+  Future getLocations() async {
+    final locationDocRef = await firestoreServices.rootCollectionReference.doc('locations').get();
+    return locationDocRef.data()['locations'];
+  }
+
+  void setStartTime(DateTime startDate) {
     bannerObject.setStartDate(startDate);
     addDataToStream();
   }
 
-  void setEndTime(DateTime endDate){
-    bannerObject.setEndDate(endDate);
+  // void setEndTime(DateTime endDate) {
+  //   bannerObject.setEndDate(endDate);
+  //   addDataToStream();
+  // }
+
+  void setVendorId(String vendorId){
+    bannerObject.setvendorId(vendorId);
+    _bannerCheckList['vendorId'] = true;
     addDataToStream();
   }
 
-  void addDataToStream(){
+  void setLocation(Map<String, dynamic> location){
+    bannerObject.setLocation(location);
+    addDataToStream();
+  }
+
+  void setEndDate(DateTime endTime){
+    bannerObject.setEndDate(endTime);
+    _bannerCheckList['endTime'] = true;
+    setBannerPrice();
+    addDataToStream();
+  }
+
+  void setBannerPrice(){
+    var duration = bannerObject.endTime.difference(bannerObject.startTime);
+    int days = duration.inDays;
+    print("Days : $days, price: ${days*100.0}");
+    bannerObject.setPrice(days*100.0);
+    addDataToStream();
+  }
+
+  void setImageUrl(String url){
+    bannerObject.setImageUrl(url);
+    _bannerCheckList['uploadEvent'] = true;
+    _bannerCheckList['imageUrl'] = true;
+    addDataToStream();
+  }
+
+  bool checkList(){
+    bool allChecked = true;
+    for(var key in _bannerCheckList.keys){
+      if(_bannerCheckList[key] == false){
+        print(key);
+        allChecked = false;
+      }
+    }
+    if(allChecked){
+      print("All checked banner is ready to upload!!");
+      addDataToStream();
+    }else{
+      print("Something is unchecked!!");
+    }
+    return allChecked;
+  }
+
+  void initiateDataItems() async{
+    await setBannerDataFromDatabase();
+  }
+
+  void addDataToStream() {
     _bannerStreamController.sink.add(bannerObject);
+  }
+
+  void addBannerToDatabase() async {
+    await firestoreServices.createBanner(bannerObject);
   }
 
 }

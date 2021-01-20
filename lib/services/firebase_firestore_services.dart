@@ -37,7 +37,7 @@ class FirestoreServices {
 
   Future updateText(String txtctr) async {
     try {
-      final text = await rootCollectionReference.doc('termsandconditions').set({
+      await rootCollectionReference.doc('termsandconditions').set({
         'termsandconditions': txtctr,
       }).then((value) => print('updated'));
     } catch (e) {
@@ -58,6 +58,20 @@ class FirestoreServices {
           .then((value) => print('Successfully added location!!'))
           .catchError(
               (error) => print('Failed to add location due to : $error'));
+      
+      final rateCardDocRef = rootCollectionReference.doc('ratecard');
+      instance.runTransaction((transaction) async {
+        DocumentSnapshot rateCardDoc = await transaction.get(rateCardDocRef);
+        Map<String, dynamic> rateCardMap = rateCardDoc.data();
+        rateCardMap[location.location] = 0.0;
+        transaction.update(rateCardDocRef, rateCardMap);
+      })
+      .then((value){
+        print("Location added to rate card!!");
+      })
+      .catchError((error){
+        print("Something went wrong while adding location to ratecard : $error");
+      });
       return true;
     } catch (e) {
       print('An exception was thrown : $e');
@@ -88,6 +102,18 @@ class FirestoreServices {
         print(error);
         return false;
       });
+      final rateCardDocRef = rootCollectionReference.doc('ratecard');
+      instance.runTransaction((transaction) async {
+        DocumentSnapshot rateCardDoc = await transaction.get(rateCardDocRef);
+        rateCardDoc.data().remove(location.location);
+        transaction.update(rateCardDocRef, rateCardDoc.data());
+      })
+      .then((value){
+        print("Location deleted from rate card!!");
+      })
+      .catchError((error){
+        print("Something went wrong while deleting location from ratecard : $error");
+      });
       return res;
     } catch (e) {
       print('An exception was thrown while deleteing the location : $e');
@@ -113,7 +139,7 @@ class FirestoreServices {
 
   Future<bool> createBanner(BannerObject banner) async {
     try {
-      final bannersCollection = instance.collection('banners');
+      final bannersCollection = rootCollectionReference.doc('banners').collection('bannerData');
       final res = await instance.runTransaction((transaction) async {
         final docRef = bannersCollection
             .doc('${banner.bannerId}' + '|' + '${banner.vendorId}');
@@ -133,14 +159,33 @@ class FirestoreServices {
     }
   }
 
-<<<<<<< HEAD
+  //key here refers to location and value refers to price at that location
+  Future updateRateCard(String key, double value) async{
+    try{
+      final rateCardDocRef = rootCollectionReference.doc('ratecard');
+      final result = instance.runTransaction((transaction) async{
+        DocumentSnapshot rateCardSnap = await transaction.get(rateCardDocRef);
+        Map<String, dynamic> rateCardMap = rateCardSnap.data();
+        rateCardMap.update(key, (value) => value);
+        transaction.update(rateCardDocRef, rateCardMap);
+      }).then((value){
+        print("Updated rate card at location $key to $value");
+        return true;
+      }).catchError((error){
+        print("Something went wrong while updating rate card : $error");
+        return false;
+      });
+      return result;
+    }catch(e){
+      print("An exceptionwas caught : $e");
+      return false;
+    }
+  }
+
 
   Future getBannerSnapshots() async {
-=======
-  Future getSnapshots() async {
->>>>>>> ffa7985982b51c216f2dce1b95ea9a39456352b6
     try {
-      final bannersReference = instance.collection('banners');
+      final bannersReference = rootCollectionReference.doc('banners').collection('bannerData');
       final documentSnapshots = await bannersReference.get();
       final bannerMaps = [];
       documentSnapshots.docs.forEach((DocumentSnapshot snapshot) {
@@ -151,4 +196,15 @@ class FirestoreServices {
       print('something went wrong : $e');
     }
   }
+
+  Future runningStatusCheckOnBanners() async{
+    try{
+      final bannerCollectionReference = rootCollectionReference.doc('banners').collection('bannerData');
+      
+
+    }catch(e){
+
+    }
+  }
+
 }
