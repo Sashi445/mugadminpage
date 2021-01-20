@@ -11,64 +11,16 @@ class Rate_Card extends StatefulWidget {
 // ignore: camel_case_types
 class _Rate_CardState extends State<Rate_Card> {
   String updated_value = '';
-  var ratecard;
+  Map<String, dynamic> ratecard;
 
   @override
   Widget build(BuildContext context) {
     final _firestoreServices =
         Provider.of<FirestoreServices>(context, listen: false);
 
-    Widget pricetile(String txt, String val) {
-      return Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Card(
-          child: ListTile(
-            title: Text(txt),
-            trailing: Text(val),
-            onTap: () {
-              return showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text('update the $txt price'),
-                      content: TextFormField(
-                        initialValue: val,
-                        onChanged: (valu) {
-                          updated_value = valu;
-                        },
-                      ),
-                      actions: [
-                        FlatButton(
-                          onPressed: () async {
-                            final temp = double.parse(updated_value);
-                            ratecard[txt] = temp;
-                            await _firestoreServices.rootCollectionReference
-                                .doc('ratecard')
-                                .set(ratecard)
-                                .then((value) => print('updated rate card'));
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Update'),
-                          color: Colors.green,
-                        ),
-                        FlatButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(
-                            'cancel',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          color: Colors.grey,
-                        ),
-                      ],
-                    );
-                  });
-            },
-          ),
-        ),
-      );
-    }
+    // Future<Widget> pricetile(String txt, double val) {
+    //   return 
+    // }
 
     return Container(
       child: Column(
@@ -80,9 +32,11 @@ class _Rate_CardState extends State<Rate_Card> {
                 padding: const EdgeInsets.all(15.0),
                 child: Center(child: Text('Rate Card')),
               ),
-              FlatButton(onPressed: (){
-                setState(() {});
-              }, child: Text('Refresh')),
+              FlatButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  child: Text('Refresh')),
             ],
           ),
           Expanded(
@@ -95,12 +49,43 @@ class _Rate_CardState extends State<Rate_Card> {
                       final docsnapshot = snapshot.data;
                       ratecard = docsnapshot.data();
                       return Column(
-                        children: [
-                          pricetile('gold', ratecard['gold'].toString()),
-                          pricetile('silver', ratecard['silver'].toString()),
-                          pricetile('bronze', ratecard['bronze'].toString()),
-                        ],
-                      );
+                          children: ratecard.keys.map((e) {
+                        return Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: ListTile(
+                            // tileColor: Colors.white,
+                            title: Text(e),
+                            trailing: Text(ratecard[e].toString()),
+                            onTap: () {
+                              showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: Text('Update $e the value'),
+                content: TextFormField(
+                  initialValue: ratecard[e].toString(),
+                  onChanged: (va) {
+                    updated_value = va;
+                  },
+                ),
+                actions: [
+                  FlatButton(
+                      onPressed: () async {
+                        await _firestoreServices
+                            .updateRateCard(e, double.parse(updated_value));
+                        Navigator.pop(context);
+                      },
+                      child: Text('update')),
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('cancel'))
+                ],
+              ));
+                            },
+                          ),
+                        );
+                      }).toList());
                     } else {
                       return CircularProgressIndicator();
                     }
