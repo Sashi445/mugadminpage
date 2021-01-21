@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:provider/provider.dart';
 
-// ignore: camel_case_types
-class Terms_and_Conditions extends StatefulWidget {
+class TermsandConditions extends StatefulWidget {
   @override
-  _Terms_and_ConditionsState createState() => _Terms_and_ConditionsState();
+  _TermsandConditionsState createState() => _TermsandConditionsState();
 }
 
-// ignore: camel_case_types
-class _Terms_and_ConditionsState extends State<Terms_and_Conditions> {
+class _TermsandConditionsState extends State<TermsandConditions> {
   final textctr = TextEditingController();
   int l = 0;
 
