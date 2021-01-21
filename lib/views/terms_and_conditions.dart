@@ -2,63 +2,114 @@ import 'package:flutter/material.dart';
 import 'package:mugadminpage/services/firebase_firestore_services.dart';
 import 'package:provider/provider.dart';
 
-// ignore: camel_case_types
-class Terms_and_Conditions extends StatefulWidget {
+class TermsandConditions extends StatefulWidget {
   @override
-  _Terms_and_ConditionsState createState() => _Terms_and_ConditionsState();
+  _TermsandConditionsState createState() => _TermsandConditionsState();
 }
 
-// ignore: camel_case_types
-class _Terms_and_ConditionsState extends State<Terms_and_Conditions> {
-  final textctr = TextEditingController();
-  int l = 0;
-
+class _TermsandConditionsState extends State<TermsandConditions> {
   @override
   Widget build(BuildContext context) {
     final _firestoreServices =
         Provider.of<FirestoreServices>(context, listen: false);
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            title: Text('Terms and Conditions'),
+            centerTitle: true,
+            bottom: TabBar(
+                labelColor: Colors.amber,
+                unselectedLabelColor: Colors.black,
+                tabs: [
+                  Tab(
+                    text: 'Vendor',
+                  ),
+                  Tab(
+                    text: 'User',
+                  ),
+                ]),
+          ),
+          body: TabBarView(children: [
+            View(
+              type: 'vendor',
+              firestoreServices: _firestoreServices,
+            ),
+            View(
+              type: 'customer',
+              firestoreServices: _firestoreServices,
+            ),
+          ]),
+        ));
+  }
+}
 
-    Widget but(int l) {
-      if (l == 0) {
-        return FlatButton(
-            color: Colors.red,
-            onPressed: () {},
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Update'),
-            ));
-      } else {
-        return FlatButton(
-          color: Colors.green,
-          onPressed: () {
-            _firestoreServices.updateText(textctr.text);
-          },
+class View extends StatefulWidget {
+  String type;
+  final FirestoreServices firestoreServices;
+
+  View({this.type, this.firestoreServices});
+
+  @override
+  _ViewState createState() => _ViewState();
+}
+
+class _ViewState extends State<View> {
+  final textctr = TextEditingController();
+  int l = 0;
+
+  Widget snackBarTerms(String textResult) {
+    return SnackBar(
+      content: Text(textResult),
+      duration: Duration(seconds: 5),
+    );
+  }
+
+  Widget updateFunction(int l) {
+    if (l == 0) {
+      return FlatButton(
+          color: Colors.red,
+          onPressed: () {},
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text('Update'),
-          ),
-        );
-      }
+          ));
+    } else {
+      return FlatButton(
+        color: Colors.green,
+        onPressed: () async {
+          bool terms = await widget.firestoreServices
+              .updateTermsAndConditionsText(widget.type, textctr.text);
+          terms == true
+              ? Scaffold.of(context)
+              .showSnackBar(snackBarTerms('updated sucessfully'))
+              : Scaffold.of(context)
+              .showSnackBar(snackBarTerms('failed to update'));
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text('Update'),
+        ),
+      );
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Container(
       child: Column(
         children: [
-          Center(
-              child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text('Terms And Conditions'),
-          )),
           Expanded(
             child: FutureBuilder(
-              future: _firestoreServices.getdata(),
+              future: widget.firestoreServices.getTermsAndConditionsData(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: TextFormField(
                       maxLines: 10,
-                      initialValue: snapshot.data,
+                      initialValue: snapshot.data[widget.type],
                       onChanged: (value) {
                         textctr.text = value;
                         setState(() {
@@ -83,7 +134,7 @@ class _Terms_and_ConditionsState extends State<Terms_and_Conditions> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: but(l),
+            child: updateFunction(l),
           )
         ],
       ),

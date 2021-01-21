@@ -22,13 +22,13 @@ class FirestoreServices {
   //   }
   // }
 
-  Future getdata() async {
+  Future getTermsAndConditionsData() async {
     try {
       final text = await rootCollectionReference
           .doc('termsandconditions')
           .get()
           .then((value) => value);
-      return text['termsandconditions'];
+      return text.data();
     } catch (e) {
       print(e);
       return false;
@@ -49,11 +49,22 @@ class FirestoreServices {
     }
   }
 
-  Future updateText(String txtctr) async {
+  Future updateTermsAndConditionsText(String type,String newText,) async {
     try {
-      await rootCollectionReference.doc('termsandconditions').set({
-        'termsandconditions': txtctr,
-      }).then((value) => print('updated'));
+      final termsAndConditionsDocRef = rootCollectionReference.doc('termsandconditions');
+      final termsAndConditionsResult = instance.runTransaction((transaction) async {
+        DocumentSnapshot termsAndConditionsSnap = await transaction.get(termsAndConditionsDocRef);
+        Map<String, dynamic> termsAndConditionsMap = termsAndConditionsSnap.data();
+        termsAndConditionsMap[type] = newText;
+        transaction.update(termsAndConditionsDocRef, termsAndConditionsMap);
+      }).then((value) {
+        print("Updated terms and conditions");
+        return true;
+      }).catchError((error) {
+        print("Something went wrong while updating terms and conditions : $error");
+        return false;
+      });
+      return termsAndConditionsResult;
     } catch (e) {
       print(e);
     }

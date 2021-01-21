@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
       child: Center(child: Text('Services and forms')),
     ),
     PostBanner(),
-    Terms_and_Conditions(),
+    TermsandConditions(),
     RateCard(),
   ];
 
