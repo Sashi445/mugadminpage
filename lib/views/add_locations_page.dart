@@ -48,7 +48,7 @@ class _AddLocationsPageState extends State<AddLocationsPage> {
                                     onPressed: () async{
                                       var res = await firestoreServices.addLocation(
                                   location: Location(
-                                      location: textEditingController.text));
+                                      location: textEditingController.text.toLowerCase()));
                               Future.delayed(Duration(seconds: 1)).then((value) {
                                 setState(() {
                                   Scaffold.of(context).showSnackBar(SnackBar(

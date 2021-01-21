@@ -35,33 +35,41 @@ class FirestoreServices {
     }
   }
 
-  Future getBannerPriceByLocaiton(String location) async{
-    try{
+  Future getBannerPriceByLocaiton(String location) async {
+    try {
       final docRef = rootCollectionReference.doc('ratecard');
-      final val = await instance.runTransaction((transaction) async{
+      final val = await instance.runTransaction((transaction) async {
         DocumentSnapshot docSnapshot = await transaction.get(docRef);
         return docSnapshot.data()[location];
       }).then((value) => value);
       print(val);
       return val;
-    }catch(e){
+    } catch (e) {
       print("An exception was thrown : $e");
     }
   }
 
-  Future updateTermsAndConditionsText(String type,String newText,) async {
+  Future updateTermsAndConditionsText(
+    String type,
+    String newText,
+  ) async {
     try {
-      final termsAndConditionsDocRef = rootCollectionReference.doc('termsandconditions');
-      final termsAndConditionsResult = instance.runTransaction((transaction) async {
-        DocumentSnapshot termsAndConditionsSnap = await transaction.get(termsAndConditionsDocRef);
-        Map<String, dynamic> termsAndConditionsMap = termsAndConditionsSnap.data();
+      final termsAndConditionsDocRef =
+          rootCollectionReference.doc('termsandconditions');
+      final termsAndConditionsResult =
+          instance.runTransaction((transaction) async {
+        DocumentSnapshot termsAndConditionsSnap =
+            await transaction.get(termsAndConditionsDocRef);
+        Map<String, dynamic> termsAndConditionsMap =
+            termsAndConditionsSnap.data();
         termsAndConditionsMap[type] = newText;
         transaction.update(termsAndConditionsDocRef, termsAndConditionsMap);
       }).then((value) {
         print("Updated terms and conditions");
         return true;
       }).catchError((error) {
-        print("Something went wrong while updating terms and conditions : $error");
+        print(
+            "Something went wrong while updating terms and conditions : $error");
         return false;
       });
       return termsAndConditionsResult;
@@ -70,36 +78,107 @@ class FirestoreServices {
     }
   }
 
+  //returns true if given location doesn't exist
+  bool searchForLocation(List locationsList, String location) {
+    for (final locationMap in locationsList) {
+      if (locationMap['location'] == location) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<bool> addLocationToRateCard(String location){
+    try{
+        final rateCardDocRef = rootCollectionReference.doc('ratecard');
+        final rateCardRes = instance.runTransaction((transaction) async {
+          DocumentSnapshot rateCardDoc = await transaction.get(rateCardDocRef);
+          Map<String, dynamic> rateCardMap = rateCardDoc.data();
+          rateCardMap[location] = 0.0;
+          transaction.update(rateCardDocRef, rateCardMap);
+          return true;
+        }).then((value) {
+          print("Location added to rate card!!");
+          return value;
+        }).catchError((error) {
+          print(
+              "Something went wrong while adding location to ratecard : $error");
+          return false;
+        });
+        return rateCardRes;
+    }catch(e){
+      print("An exception occures ; $e");
+      return Future.delayed(Duration(seconds: 1)).then((value) => false);
+    }
+  }
+
   Future<bool> addLocation({Location location}) async {
     try {
       final docRef = rootCollectionReference.doc('locations');
-      instance
-          .runTransaction((transaction) async {
-            DocumentSnapshot docSnapshot = await transaction.get(docRef);
-            final locationsList = docSnapshot['locations'];
-            locationsList.add(location.toMap());
-            transaction.update(docRef, {'locations': locationsList});
-          })
-          .then((value) => print('Successfully added location!!'))
-          .catchError(
-              (error) => print('Failed to add location due to : $error'));
-      
-      final rateCardDocRef = rootCollectionReference.doc('ratecard');
-      instance.runTransaction((transaction) async {
-        DocumentSnapshot rateCardDoc = await transaction.get(rateCardDocRef);
-        Map<String, dynamic> rateCardMap = rateCardDoc.data();
-        rateCardMap[location.location] = 0.0;
-        transaction.update(rateCardDocRef, rateCardMap);
-      })
-      .then((value){
-        print("Location added to rate card!!");
-      })
-      .catchError((error){
-        print("Something went wrong while adding location to ratecard : $error");
+
+      final res = await instance.runTransaction((transaction) async {
+        DocumentSnapshot docSnapshot = await transaction.get(docRef);
+        final locationsList = docSnapshot['locations'];
+        bool val = searchForLocation(locationsList, location.location);
+        if (val == false) {
+          print("location already exists!!");
+          return false;
+        }
+        locationsList.add(location.toMap());
+        transaction.update(docRef, {'locations': locationsList});
+        return true;
+      }).then((value) {
+        print(value);
+        return value;
+      }).catchError((error) {
+        print('Failed to add location due to : $error');
+        return false;
       });
-      return true;
+
+      if(res == true){
+        final rateCardRes = await addLocationToRateCard(location.location);
+        return rateCardRes ? true : false;
+      }else{
+        return false;
+      }
+
     } catch (e) {
       print('An exception was thrown : $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteLocationFromRateCard(Location location) async {
+    try {
+      final docRef = await instance.collection('AppData').doc('ratecard').get();
+      final docMap = docRef.data();
+      docMap.remove(location.location);
+      print(docMap);
+      final res = await instance
+          .collection('AppData')
+          .doc('ratecard')
+          .set(docMap)
+          .then((value) => true)
+          .catchError((error) => false);
+      return res;
+      // final res = instance.runTransaction((transaction) async {
+      //   final docSnap = await transaction.get(docRef);
+      //   Map<String,dynamic> docMap = docSnap.data();
+      //   docMap.remove(location.location);
+      //   print(docMap);
+      //   transaction.update(docRef, docMap);
+      // }).then((value){
+      //   print("Successfully deleted location from ratecard!!");
+      //   return true;
+      // })
+      // .catchError((error){
+      //   print("an error was caught!! : $error");
+      //   return false;
+      // });
+      // return res;
+
+    } catch (e) {
+      print("An exceptionwas caught : $e");
       return false;
     }
   }
@@ -127,19 +206,13 @@ class FirestoreServices {
         print(error);
         return false;
       });
-      final rateCardDocRef = rootCollectionReference.doc('ratecard');
-      instance.runTransaction((transaction) async {
-        DocumentSnapshot rateCardDoc = await transaction.get(rateCardDocRef);
-        rateCardDoc.data().remove(location.location);
-        transaction.update(rateCardDocRef, rateCardDoc.data());
-      })
-      .then((value){
-        print("Location deleted from rate card!!");
-      })
-      .catchError((error){
-        print("Something went wrong while deleting location from ratecard : $error");
-      });
-      return res;
+      final rateCardRes = await deleteLocationFromRateCard(location);
+      if (res && rateCardRes) {
+        print("Success");
+        return true;
+      }
+      print("Something went wrong!!");
+      return false;
     } catch (e) {
       print('An exception was thrown while deleteing the location : $e');
       return false;
@@ -164,7 +237,8 @@ class FirestoreServices {
 
   Future<bool> createBanner(BannerObject banner) async {
     try {
-      final bannersCollection = rootCollectionReference.doc('banners').collection('bannerData');
+      final bannersCollection =
+          rootCollectionReference.doc('banners').collection('bannerData');
       final res = await instance.runTransaction((transaction) async {
         final docRef = bannersCollection
             .doc('${banner.bannerId}' + '|' + '${banner.vendorId}');
@@ -185,32 +259,32 @@ class FirestoreServices {
   }
 
   //key here refers to location and value refers to price at that location
-  Future updateRateCard(String key, double value) async{
-    try{
+  Future updateRateCard(String key, double value) async {
+    try {
       final rateCardDocRef = rootCollectionReference.doc('ratecard');
-      final result = instance.runTransaction((transaction) async{
+      final result = instance.runTransaction((transaction) async {
         DocumentSnapshot rateCardSnap = await transaction.get(rateCardDocRef);
         Map<String, dynamic> rateCardMap = rateCardSnap.data();
         rateCardMap[key] = value;
         transaction.update(rateCardDocRef, rateCardMap);
-      }).then((result){
+      }).then((result) {
         print("Updated rate card at location $key to $value!!");
         return true;
-      }).catchError((error){
+      }).catchError((error) {
         print("Something went wrong while updating rate card : $error");
         return false;
       });
       return result;
-    }catch(e){
+    } catch (e) {
       print("An exceptionwas caught : $e");
       return false;
     }
   }
 
-
   Future getBannerSnapshots() async {
     try {
-      final bannersReference = rootCollectionReference.doc('banners').collection('bannerData');
+      final bannersReference =
+          rootCollectionReference.doc('banners').collection('bannerData');
       final documentSnapshots = await bannersReference.get();
       final bannerMaps = [];
       documentSnapshots.docs.forEach((DocumentSnapshot snapshot) {
@@ -222,49 +296,56 @@ class FirestoreServices {
     }
   }
 
-  DateTime getDateFromMap(dynamic dateMap) => DateTime.utc(dateMap['year'], dateMap['month'], dateMap['day'], dateMap['hour'], dateMap['minute'], dateMap['second']);
+  DateTime getDateFromMap(dynamic dateMap) => DateTime.utc(
+      dateMap['year'],
+      dateMap['month'],
+      dateMap['day'],
+      dateMap['hour'],
+      dateMap['minute'],
+      dateMap['second']);
 
   //takes in the banner document and returns the status of the banner
-  String _updateStatus(Map<String, dynamic> bannerMap){
+  String _updateStatus(Map<String, dynamic> bannerMap) {
     final startDate = getDateFromMap(bannerMap['startTime']);
     final endDate = getDateFromMap(bannerMap['endTime']);
     final presentDate = DateTime.now();
     final duration1 = presentDate.difference(startDate);
     final duration2 = presentDate.difference(endDate);
-    if(duration1.isNegative){
-      if(startDate.day == presentDate.day && startDate.month == presentDate.month && startDate.year == presentDate.year)
-         return "Approved";
+    if (duration1.isNegative) {
+      if (startDate.day == presentDate.day &&
+          startDate.month == presentDate.month &&
+          startDate.year == presentDate.year)
+        return "Approved";
       else
-         return "Active";
-    }else if(!duration1.isNegative && duration2.isNegative){
+        return "Active";
+    } else if (!duration1.isNegative && duration2.isNegative) {
       return "Active";
-    }else if(!duration1.isNegative && !duration2.isNegative){
+    } else if (!duration1.isNegative && !duration2.isNegative) {
       return "Expired";
     }
     return "Wrong input!!";
   }
 
-  Future runningStatusCheckOnBanners() async{
-    try{
-      final bannerCollectionReference = rootCollectionReference.doc('banners').collection('bannerData');
+  Future runningStatusCheckOnBanners() async {
+    try {
+      final bannerCollectionReference =
+          rootCollectionReference.doc('banners').collection('bannerData');
       //using batch writes here because need to update every banner status
       WriteBatch batch = instance.batch();
-      bannerCollectionReference.get().then((QuerySnapshot querySnapshot){
+      bannerCollectionReference.get().then((QuerySnapshot querySnapshot) {
         querySnapshot.docs.forEach((DocumentSnapshot document) {
           Map<String, dynamic> documentMap = document.data();
           final res = _updateStatus(documentMap);
           documentMap['status'] = res;
           batch.update(document.reference, documentMap);
         });
-      })
-      .then((value){
+      }).then((value) {
         batch.commit();
       });
       print("Running status check on banners using batches!!");
       // return batch.commit();
-    }catch(e){
+    } catch (e) {
       print("An exception was thrown : $e");
     }
   }
-
 }

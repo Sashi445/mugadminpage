@@ -22,6 +22,7 @@ class _TermsandConditionsState extends State<TermsandConditions> {
             bottom: TabBar(
                 labelColor: Colors.amber,
                 unselectedLabelColor: Colors.black,
+                indicatorColor: Colors.amber,
                 tabs: [
                   Tab(
                     text: 'Vendor',

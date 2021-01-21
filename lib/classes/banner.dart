@@ -1,9 +1,21 @@
+import 'dart:math';
+
+
+class GenerateUniqueId{
+  static int uniqueIdGenerator(){
+    int sum = 0;
+    for(int i=0; i<5; i++){
+      sum = sum*10 +  Random().nextInt(10);
+    }
+    return sum;
+  }
+}
+
 
 class BannerObject{
   
-  static int count = 0;
   Map<String,dynamic>  location;
-  int bannerId;
+  final int bannerId = GenerateUniqueId.uniqueIdGenerator();
   String vendorId;
   final DateTime createTime  = DateTime.now();
   DateTime startTime;
@@ -12,10 +24,9 @@ class BannerObject{
   double price;
   String status = "Approved";
   final bool adminAuthorised = true;
-  
+
   BannerObject(){
-    this.bannerId = count;
-    count++;
+    print(this.bannerId);
   }
 
   //ignore using most of the time
