@@ -44,21 +44,32 @@ class _AddLocationsPageState extends State<AddLocationsPage> {
                               suffixIcon: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: IconButton(
-                                    icon: Icon(Icons.add_circle_rounded),
-                                    onPressed: () async{
-                                      var res = await firestoreServices.addLocation(
-                                  location: Location(
-                                      location: textEditingController.text.toLowerCase()));
-                              Future.delayed(Duration(seconds: 1)).then((value) {
-                                setState(() {
-                                  Scaffold.of(context).showSnackBar(SnackBar(
-                                    content: Text('Added Location'),
-                                  ));
-                                  textEditingController.clear();
-                                });
-                              });
-                              print(res);
-                                    }),
+                                  icon: Icon(Icons.add_circle_rounded),
+                                  onPressed: () async {
+                                    if (textEditingController.text.isEmpty) {
+                                      print('add proper location');
+                                    } else {
+                                      print(textEditingController.text);
+                                      var res =
+                                          await firestoreServices.addLocation(
+                                              location: Location(
+                                                  location:
+                                                      textEditingController.text
+                                                          .toLowerCase()));
+                                      Future.delayed(Duration(seconds: 1))
+                                          .then((value) {
+                                        setState(() {
+                                          Scaffold.of(context)
+                                              .showSnackBar(SnackBar(
+                                            content: Text('Added Location'),
+                                          ));
+                                          textEditingController.clear();
+                                        });
+                                      });
+                                      print(res);
+                                    }
+                                  },
+                                ),
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -67,25 +78,6 @@ class _AddLocationsPageState extends State<AddLocationsPage> {
                         ),
                       ),
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    //   child: RaisedButton(
-                    //       child: Text('Add'),
-                    //       onPressed: () async {
-                    //         var res = await firestoreServices.addLocation(
-                    //             location: Location(
-                    //                 location: textEditingController.text));
-                    //         Future.delayed(Duration(seconds: 1)).then((value) {
-                    //           setState(() {
-                    //             Scaffold.of(context).showSnackBar(SnackBar(
-                    //               content: Text('Added Location'),
-                    //             ));
-                    //             textEditingController.clear();
-                    //           });
-                    //         });
-                    //         print(res);
-                    //       }),
-                    // )
                   ],
                 ),
               ),
@@ -109,20 +101,62 @@ class _AddLocationsPageState extends State<AddLocationsPage> {
                                         locations.elementAt(index)['location']),
                                     trailing: IconButton(
                                         onPressed: () {
-                                          firestoreServices.deleteLocation(
-                                              location: Location.fromJson(
-                                                  locations.elementAt(index)));
-                                          Future.delayed(
-                                                  Duration(milliseconds: 1000))
-                                              .then((value) {
-                                            setState(() {
-                                              Scaffold.of(context)
-                                                  .showSnackBar(SnackBar(
-                                                content:
-                                                    Text('Location deleted!!'),
-                                              ));
-                                            });
-                                          });
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  title: Text(
+                                                      'Are you sure want to delete location'),
+                                                  actions: [
+                                                    FlatButton(
+                                                        onPressed: () {
+                                                          firestoreServices.deleteLocation(
+                                                              location: Location
+                                                                  .fromJson(locations
+                                                                      .elementAt(
+                                                                          index)));
+                                                          Future.delayed(Duration(
+                                                                  milliseconds:
+                                                                      1000))
+                                                              .then((value) {
+                                                            setState(() {
+                                                              Scaffold.of(
+                                                                      context)
+                                                                  .showSnackBar(
+                                                                      SnackBar(
+                                                                content: Text(
+                                                                    'Location deleted!!'),
+                                                              ));
+                                                            });
+                                                          });
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        color: Colors.red,
+                                                        child: Text('yes')),
+                                                    FlatButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child: Text('no')),
+                                                  ],
+                                                );
+                                              });
+                                          // firestoreServices.deleteLocation(
+                                          //     location: Location.fromJson(
+                                          //         locations.elementAt(index)));
+                                          // Future.delayed(
+                                          //         Duration(milliseconds: 1000))
+                                          //     .then((value) {
+                                          //   setState(() {
+                                          //     Scaffold.of(context)
+                                          //         .showSnackBar(SnackBar(
+                                          //       content:
+                                          //           Text('Location deleted!!'),
+                                          //     ));
+                                          //   });
+                                          // });
                                         },
                                         icon: Icon(Icons.delete)),
                                   ),

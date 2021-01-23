@@ -69,7 +69,7 @@ class _ViewWidgetState extends State<ViewWidget> {
   }
 
   Widget updateFunction(int l) {
-    if (l == 0) {
+    if (l == 0 || textctr.text.isEmpty) {
       return FlatButton(
           color: Colors.red,
           onPressed: () {},
@@ -77,7 +77,7 @@ class _ViewWidgetState extends State<ViewWidget> {
             padding: const EdgeInsets.all(8.0),
             child: Text('Update'),
           ));
-    } else {
+    } else if (l != 0 && textctr.text.isNotEmpty) {
       return FlatButton(
         color: Colors.green,
         onPressed: () async {
@@ -85,9 +85,9 @@ class _ViewWidgetState extends State<ViewWidget> {
               .updateTermsAndConditionsText(widget.type, textctr.text);
           terms == true
               ? Scaffold.of(context)
-              .showSnackBar(snackBarTerms('updated sucessfully'))
+                  .showSnackBar(snackBarTerms('updated sucessfully'))
               : Scaffold.of(context)
-              .showSnackBar(snackBarTerms('failed to update'));
+                  .showSnackBar(snackBarTerms('failed to update'));
         },
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -95,6 +95,7 @@ class _ViewWidgetState extends State<ViewWidget> {
         ),
       );
     }
+    return null;
   }
 
   @override
